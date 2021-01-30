@@ -14,7 +14,6 @@ services:
       - {{ cadvisor_docker_network }}
     labels:
       - app=cadvisor
-
 {% if cadvisor_docker_log_driver === "fluentd" %}
     logging:
       driver: fluentd
