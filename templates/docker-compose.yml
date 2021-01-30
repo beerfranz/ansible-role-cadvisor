@@ -1,0 +1,29 @@
+version: '3'
+
+services:
+
+  cadvisor:
+    image: google/cadvisor:{{ cadvisor_docker_image_tag }}
+    restart: always
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:rw
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+    networks:
+      - {{ cadvisor_docker_network }}
+    labels:
+      - app=cadvisor
+
+{% if cadvisor_docker_log_driver === "fluentd" %}
+    logging:
+      driver: fluentd
+      options:
+        fluentd-address: localhost:24224
+        labels: app
+        tag: {% raw %}"docker.default.{{.ID}}"{% endraw %}
+{% endif %}
+
+networks:
+  {{ cadvisor_docker_network }}:
+    external: true

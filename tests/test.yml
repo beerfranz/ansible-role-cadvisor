@@ -1,0 +1,31 @@
+---
+- hosts: all
+  roles:
+    - role: ../ansible-role-cadvisor/
+      vars:
+        cadvisor_install_path: /ansible-test/cadvisor
+
+  tasks:
+
+    - name: Run `docker-compose up`
+      become: true
+      docker_compose:
+        project_src: /ansible-test/cadvisor
+        build: no
+
+    - name: Wait for container is healthy
+      become: true
+      shell:
+        chdir: /ansible-test/cadvisor
+        cmd: docker-compose ps cadvisor | grep "(healthy)"
+      register: cmd_res
+      retries: 10
+      delay: 5
+      until: cmd_res.rc == 0
+
+  post_tasks:
+    - name: Stop cAdvisor
+      become: true
+      docker_compose:
+        project_src: /ansible-test/cadvisor
+        state: absent
